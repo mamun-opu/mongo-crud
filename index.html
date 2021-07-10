@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1 style="text-align: center;">hello world from html!</h1>
+    <form action="/addFood" method="post">
+        name: <input type="text" name="name" placeholder="food name">
+        price: <input type="number" name="price" placeholder="food price">
+        quantity: <input type="number" name="quantity" placeholder="quantity">
+        <button type="submit">submit</button>
+    </form>
+    <div id="fruits">
+
+    </div>
+    <div id="update">
+
+    </div>
+
+    <script>
+        
+        function loadAllProduct(){
+            fetch('/show/fruits')
+            .then(res => res.json())
+            .then(fruits => {
+                const fruitSection = document.getElementById('fruits');
+                fruitSection.innerHTML = '';
+                fruits.forEach(fruit => {
+                    const p = document.createElement('p');
+                    p.innerHTML = `${fruit.name} ---> price: ${fruit.price} -- quantity: ${fruit.quantity} 
+                    <button onclick = "loadFruit('${fruit._id}')">update</button>
+                    <button onclick = "deleteFruit(event, '${fruit._id}')">delete</button>`;
+                    fruitSection.appendChild(p);
+                })
+                
+            })
+        }
+        loadAllProduct();
+
+        function deleteFruit(event, id){
+            fetch(`/delete/${id}`,{
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(result => {
+                if(result){
+                    event.target.parentNode.style.display = 'none';
+                }
+            })
+        }
+        function loadFruit(id){
+            fetch(`fruit/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                const update = document.getElementById('update');
+                update.innerHTML = `
+                    <h3>Update: ${data.name}</h3>
+                    price: <input type="number" name="price" placeholder="food price" id="price">
+                    </br>
+                    </br>
+                    quantity: <input type="number" name="quantity" placeholder="quantity" id="quantity">
+                    </br>
+                    </br>
+                    <button onclick = "updateFruit('${data._id}')" type="submit">submit</button>
+                `
+            })
+        }
+        function updateFruit(id){
+            const price = document.getElementById('price').value;
+            const quantity = document.getElementById('quantity').value;
+            const product = {id, price, quantity};
+            fetch(`/update/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(product)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data){
+                    loadAllProduct();
+                    const updateSection = document.getElementById('update');
+                    updateSection.style.display = 'none';
+                }
+            })
+        }
+
+    </script>
+</body>
+</html>
